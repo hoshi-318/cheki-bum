@@ -1,0 +1,14 @@
+# Netlify設定ファイル
+
+[build]
+  # ビルドコマンドは不要（静的サイト）
+  command = ""
+  # 公開ディレクトリ
+  publish = "."
+
+[[redirects]]
+  # SPA用のリダイレクト設定（必要に応じて）
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
