@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cheki-bum</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: system-ui, sans-serif;
+        background: #fafafa;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f7f7f7;
+        border-bottom: 1px solid #ddd;
+        gap: 16px;
+        z-index: 5;
+      }
+
+      button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        background: #007aff;
+        color: #fff;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      button:hover {
+        background: #005fce;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .tab-button {
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: none;
+        background: transparent;
+        color: #555;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      .tab-button.is-active {
+        background: #1f3fd1;
+        color: #fff;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .fab {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: none;
+        background: #007aff;
+        color: #fff;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+        transition: all 0.2s ease;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .fab:hover {
+        background: #005fce;
+        box-shadow: 0 6px 16px rgba(0, 122, 255, 0.5);
+        transform: scale(1.05);
+      }
+
+      .fab:active {
+        transform: scale(0.95);
+      }
+
+      .search-bar {
+        padding: 12px 16px;
+        background: #fff;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .search-bar__input {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .search-bar__input:focus {
+        border-color: #1f3fd1;
+      }
+
+      .search-bar__clear {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 50%;
+        border: none;
+        background: #e5e7eb;
+        color: #111;
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .search-bar__clear:hover {
+        background: #d1d5db;
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 24px;
+      }
+
+      .tag-filter {
+        display: none;
+        flex-wrap: nowrap;
+        gap: 8px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db transparent;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .tag-filter.is-visible {
+        display: flex;
+      }
+
+      .tag-filter::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      .tag-filter::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .tag-filter::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 3px;
+      }
+
+      .tag-filter::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+      }
+
+      .tag-filter-button {
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .tag-filter-button:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+      }
+
+      .tag-filter-button.is-active {
+        background: #1f3fd1;
+        color: #fff;
+        border-color: #1f3fd1;
+      }
+
+      .gallery {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .gallery img {
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        display: block;
+        border-radius: 12px;
+        object-fit: cover;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+      }
+
+      .empty-state {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+        padding: 40px 20px;
+      }
+
+      .empty-state.is-visible {
+        display: flex;
+      }
+
+      .empty-state__message {
+        color: #9ca3af;
+        font-size: 16px;
+        text-align: center;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(4px);
+        z-index: 10;
+      }
+
+      .modal.is-open {
+        display: flex;
+      }
+
+      #edit-modal {
+        z-index: 30; /* ビューモーダルより前面に表示 */
+      }
+
+      .modal__dialog {
+        position: relative;
+        width: min(420px, 100%);
+        padding: 24px;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .modal__close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0, 0, 0, 0.06);
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .modal__preview {
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        border-radius: 12px;
+        object-fit: cover;
+        background: #f3f3f3;
+      }
+
+      .modal__field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 14px;
+      }
+
+      .modal__field input,
+      .modal__field textarea {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+      }
+
+      .modal__field textarea {
+        min-height: 60px;
+        line-height: 1.5;
+      }
+
+      .modal__actions {
+        margin-top: 8px;
+      }
+
+      .modal__actions button {
+        width: 100%;
+      }
+
+      .viewer-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 20;
+      }
+
+      .viewer-modal.is-open {
+        display: flex;
+      }
+
+      .viewer-modal__dialog {
+        position: relative;
+        width: min(960px, 100%);
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .viewer-modal__close {
+        position: absolute;
+        top: -16px;
+        right: -16px;
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+      }
+
+      .viewer-modal__actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 16px;
+      }
+
+      .viewer-modal__edit,
+      .viewer-modal__delete {
+        padding: 10px 24px;
+        border-radius: 8px;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        display: none;
+      }
+
+      .viewer-modal__edit.is-visible,
+      .viewer-modal__delete.is-visible {
+        display: block;
+      }
+
+      .viewer-modal__edit {
+        background: #007aff;
+        color: #fff;
+      }
+
+      .viewer-modal__edit:hover {
+        background: #005fce;
+      }
+
+      .viewer-modal__delete {
+        background: #ff3b30;
+        color: #fff;
+      }
+
+      .viewer-modal__delete:hover {
+        background: #ff2d20;
+      }
+
+      .viewer-modal__image {
+        width: 100%;
+        max-height: 70vh;
+        object-fit: contain;
+        border-radius: 12px;
+        background: #111;
+      }
+
+      .viewer-modal__meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #fff;
+        font-size: 15px;
+        gap: 24px;
+      }
+
+      .viewer-modal__tag {
+        flex: 1;
+        font-weight: 600;
+      }
+
+      .viewer-modal__date {
+        font-size: 14px;
+        opacity: 0.85;
+      }
+
+      .viewer-modal__comment {
+        color: #fff;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-top: 12px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        min-height: 40px;
+      }
+
+      .viewer-modal__comment:empty {
+        display: none;
+      }
+    </style>
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./config.js"></script>
+    <script src="./main.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <nav class="tabs" role="tablist" aria-label="写真の表示切替">
+        <button
+          class="tab-button is-active"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          data-tab="my"
+          id="tab-my"
+        >
+          my photos
+        </button>
+        <button
+          class="tab-button"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          data-tab="all"
+          id="tab-all"
+        >
+          all photos
+        </button>
+      </nav>
+    </header>
+    <div class="search-bar">
+      <input
+        type="text"
+        id="search-input"
+        class="search-bar__input"
+        placeholder="タグ名で絞り込み"
+        aria-label="タグ名で絞り込み"
+      />
+      <button type="button" id="search-clear" class="search-bar__clear" aria-label="検索をクリア">
+        ×
+      </button>
+    </div>
+    <main>
+      <div class="tag-filter" id="tag-filter" aria-label="タグで絞り込み"></div>
+      <div class="empty-state" id="empty-state">
+        <p class="empty-state__message">
+          お気に入りのチェキをアップして、<br />アルバムを作ってみましょう！
+        </p>
+      </div>
+      <section class="gallery">
+        <img
+          src="https://placehold.co/600x800?text=Photo+1"
+          alt="ギャラリー画像1"
+          data-tag="サンプルタグ1"
+          data-owner="all"
+          data-date="2025/01/01"
+        />
+        <img
+          src="https://placehold.co/600x800?text=Photo+2"
+          alt="ギャラリー画像2"
+          data-tag="サンプルタグ2"
+          data-owner="all"
+          data-date="2025/01/02"
+        />
+      </section>
+    </main>
+    <div class="modal" id="post-modal" aria-hidden="true" role="dialog">
+      <div class="modal__dialog">
+        <button
+          type="button"
+          class="modal__close"
+          id="modal-close"
+          aria-label="閉じる"
+        >
+          ×
+        </button>
+        <img
+          src=""
+          alt="選択した画像のプレビュー"
+          class="modal__preview"
+          id="modal-preview"
+        />
+        <label class="modal__field">
+          タグ
+          <input
+            type="text"
+            id="tag-input"
+            placeholder="写っている人の名前"
+          />
+        </label>
+        <label class="modal__field">
+          コメント
+          <textarea
+            id="comment-input"
+            placeholder="コメントを入力してください"
+            rows="2"
+          ></textarea>
+        </label>
+        <div class="modal__actions">
+          <button type="button" id="post-button">投稿</button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="viewer-modal"
+      id="viewer-modal"
+      role="dialog"
+      aria-hidden="true"
+    >
+      <div class="viewer-modal__dialog">
+        <button
+          type="button"
+          class="viewer-modal__close"
+          id="viewer-close"
+          aria-label="閉じる"
+        >
+          ×
+        </button>
+        <img
+          src=""
+          alt="選択中の画像"
+          class="viewer-modal__image"
+          id="viewer-image"
+        />
+        <div class="viewer-modal__meta">
+          <p class="viewer-modal__tag" id="viewer-tag"></p>
+          <p class="viewer-modal__date" id="viewer-date">-</p>
+        </div>
+        <div class="viewer-modal__comment" id="viewer-comment"></div>
+        <div class="viewer-modal__actions">
+          <button
+            type="button"
+            class="viewer-modal__edit"
+            id="viewer-edit"
+            aria-label="画像を編集"
+          >
+            編集
+          </button>
+          <button
+            type="button"
+            class="viewer-modal__delete"
+            id="viewer-delete"
+            aria-label="画像を削除"
+          >
+            削除
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="edit-modal" aria-hidden="true" role="dialog">
+      <div class="modal__dialog">
+        <button
+          type="button"
+          class="modal__close"
+          id="edit-modal-close"
+          aria-label="閉じる"
+        >
+          ×
+        </button>
+        <h2 style="margin: 0 0 16px; font-size: 18px; font-weight: 600">
+          画像を編集
+        </h2>
+        <label class="modal__field">
+          タグ
+          <input
+            type="text"
+            id="edit-tag-input"
+            placeholder="写っている人の名前"
+          />
+        </label>
+        <label class="modal__field">
+          投稿日時
+          <input
+            type="datetime-local"
+            id="edit-date-input"
+          />
+        </label>
+        <label class="modal__field">
+          コメント
+          <textarea
+            id="edit-comment-input"
+            placeholder="コメントを入力してください"
+            rows="2"
+          ></textarea>
+        </label>
+        <div class="modal__actions">
+          <button type="button" id="edit-save-button">保存</button>
+        </div>
+      </div>
+    </div>
+    <button type="button" id="add-button" class="fab" aria-label="画像を追加">
+      ＋
+    </button>
+    <input
+      type="file"
+      id="image-picker"
+      accept="image/*"
+      multiple
+      hidden
+    />
+  </body>
+</html>
+
