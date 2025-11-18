@@ -67,10 +67,75 @@ CREATE POLICY "Allow public delete access" ON photos
 
 CREATE POLICY "Allow public update access" ON photos
   FOR UPDATE USING (true);
+
+-- user_profilesテーブルを作成（表示名を管理）
+CREATE TABLE IF NOT EXISTS user_profiles (
+  user_key TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- RLS（Row Level Security）を有効化
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+-- パブリックアクセスを許可（開発用）
+CREATE POLICY "Allow public read access" ON user_profiles
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public insert access" ON user_profiles
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update access" ON user_profiles
+  FOR UPDATE USING (true);
 ```
 
 4. 「Run」ボタンをクリックして実行
 5. 成功メッセージが表示されれば完了
+
+**注意**: 既に `photos` テーブルとポリシーが作成されている場合は、以下の `user_profiles` テーブルの部分だけを実行してください：
+
+```sql
+-- user_profilesテーブルを作成（表示名を管理）
+CREATE TABLE IF NOT EXISTS user_profiles (
+  user_key TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- RLS（Row Level Security）を有効化
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+-- パブリックアクセスを許可（開発用）
+CREATE POLICY "Allow public read access" ON user_profiles
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public insert access" ON user_profiles
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update access" ON user_profiles
+  FOR UPDATE USING (true);
+```
+
+**エラーが発生した場合**: 既にポリシーが存在する場合は、以下のように既存のポリシーを削除してから再作成することもできます（通常は不要です）：
+
+```sql
+-- 既存のポリシーを削除（必要に応じて）
+DROP POLICY IF EXISTS "Allow public read access" ON user_profiles;
+DROP POLICY IF EXISTS "Allow public insert access" ON user_profiles;
+DROP POLICY IF EXISTS "Allow public update access" ON user_profiles;
+
+-- ポリシーを再作成
+CREATE POLICY "Allow public read access" ON user_profiles
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public insert access" ON user_profiles
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update access" ON user_profiles
+  FOR UPDATE USING (true);
+```
 
 ## ステップ5: config.jsの設定
 
@@ -109,9 +174,19 @@ const SUPABASE_CONFIG = {
 | id | UUID | 主キー（自動生成） |
 | user_key | TEXT | ユーザー識別キー |
 | name_tag | TEXT | タグ名（写っている人の名前） |
+| comment | TEXT | コメント |
 | cloudinary_url | TEXT | Cloudinaryの画像URL |
 | cloudinary_public_id | TEXT | Cloudinaryのpublic_id |
 | delete_token | TEXT | 削除用トークン（オプション） |
+| created_at | TIMESTAMP | 作成日時（自動設定） |
+| updated_at | TIMESTAMP | 更新日時（自動設定） |
+
+### user_profilesテーブル
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| user_key | TEXT | 主キー（ユーザー識別キー） |
+| display_name | TEXT | 表示名 |
 | created_at | TIMESTAMP | 作成日時（自動設定） |
 | updated_at | TIMESTAMP | 更新日時（自動設定） |
 
